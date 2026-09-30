@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Panadería El Viajero - Inventario</title>
+
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+<header class="encabezado">
+    <div>
+        <h1>Panadería El Viajero</h1>
+        <p>Panel administrativo de inventario</p>
+    </div>
+
+    <div class="estado-sistema">
+        <span class="punto-activo"></span>
+        Sistema activo
+    </div>
+</header>
+
+<main class="contenedor">
+
+    <!-- RESUMEN -->
+    <section class="resumen">
+
+        <div class="tarjeta-resumen">
+            <span>Sucursales</span>
+            <strong id="totalSucursales">-</strong>
+        </div>
+
+        <div class="tarjeta-resumen">
+            <span>Artículos registrados</span>
+            <strong id="totalArticulos">-</strong>
+        </div>
+
+        <div class="tarjeta-resumen">
+            <span>Inventario bajo</span>
+            <strong id="totalBajo">-</strong>
+        </div>
+
+    </section>
+
+
+    <!-- ASISTENTE IA -->
+    <section class="tarjeta">
+
+        <div class="titulo-seccion">
+            <div>
+                <h2>Asistente inteligente</h2>
+                <p>
+                    Consulta existencias, inventario por sucursal
+                    y sugerencias de reposición.
+                </p>
+            </div>
+
+            <span class="etiqueta-ia">Gemma 3</span>
+        </div>
+
+        <div id="respuestaAsistente" class="respuesta-asistente">
+            Escribe una consulta para comenzar.
+        </div>
+
+        <form id="formAsistente" class="form-asistente">
+
+            <input
+                type="text"
+                id="mensaje"
+                maxlength="500"
+                autocomplete="off"
+                placeholder="Ejemplo: ¿Qué necesitamos comprar?"
+                required
+            >
+
+            <button type="submit" id="btnEnviar">
+                Consultar
+            </button>
+
+        </form>
+
+    </section>
+
+
+    <!-- REGISTRAR MOVIMIENTO -->
+    <section class="tarjeta">
+
+        <div class="titulo-seccion">
+            <div>
+                <h2>Registrar movimiento de inventario</h2>
+                <p>
+                    Registra entradas y salidas de productos
+                    o ingredientes.
+                </p>
+            </div>
+        </div>
+
+        <form id="formMovimiento" class="form-movimiento">
+
+            <div class="campo">
+                <label for="movSucursal">Sucursal</label>
+
+                <select id="movSucursal" required>
+                    <option value="">Seleccione una sucursal</option>
+                </select>
+            </div>
+
+            <div class="campo">
+                <label for="movArticulo">Artículo</label>
+
+                <select id="movArticulo" required>
+                    <option value="">Seleccione un artículo</option>
+                </select>
+            </div>
+
+            <div class="campo">
+                <label for="movTipo">Tipo de movimiento</label>
+
+                <select id="movTipo" required>
+                    <option value="">Seleccione el tipo</option>
+                    <option value="ENTRADA">Entrada</option>
+                    <option value="SALIDA">Salida</option>
+                </select>
+            </div>
+
+            <div class="campo">
+                <label for="movCantidad">Cantidad</label>
+
+                <input
+                    type="number"
+                    id="movCantidad"
+                    min="0.01"
+                    step="0.01"
+                    placeholder="Ejemplo: 10"
+                    required
+                >
+            </div>
+
+            <div class="campo campo-descripcion">
+                <label for="movDescripcion">Descripción</label>
+
+                <input
+                    type="text"
+                    id="movDescripcion"
+                    maxlength="200"
+                    placeholder="Ejemplo: Compra de producto"
+                >
+            </div>
+
+            <div class="campo campo-boton">
+                <button type="submit" id="btnMovimiento">
+                    Registrar movimiento
+                </button>
+            </div>
+
+        </form>
+
+        <div id="resultadoMovimiento" class="resultado-movimiento"></div>
+
+    </section>
+
+
+    <!-- INVENTARIO -->
+    <section class="tarjeta">
+
+        <div class="titulo-seccion">
+            <div>
+                <h2>Inventario actual</h2>
+                <p>
+                    Existencias registradas por sucursal.
+                </p>
+            </div>
+        </div>
+
+        <div class="tabla-contenedor">
+
+            <table>
+
+                <thead>
+                    <tr>
+                        <th>Sucursal</th>
+                        <th>Artículo</th>
+                        <th>Tipo</th>
+                        <th>Cantidad</th>
+                        <th>Mínimo</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+
+                <tbody id="tablaInventario">
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+
+    <!-- HISTORIAL IA -->
+    <section class="tarjeta">
+
+        <div class="titulo-seccion">
+            <div>
+                <h2>Historial del asistente</h2>
+                <p>
+                    Últimas consultas realizadas al sistema.
+                </p>
+            </div>
+        </div>
+
+        <div id="historial" class="historial">
+            Cargando historial...
+        </div>
+
+    </section>
+
+</main>
+
+<script src="app.js"></script>
+
+</body>
+</html>
