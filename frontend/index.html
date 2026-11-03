@@ -237,6 +237,71 @@
 
             <!-- ARTÍCULOS -->
             <section id="articulos" class="pagina">
+                
+
+<div class="tarjeta">
+    <h2>Registrar nuevo artículo</h2>
+    <p>Agrega un producto o ingrediente con sus existencias iniciales.</p>
+
+    <form id="formArticulo" class="form-movimiento">
+
+        <div class="campo">
+            <label for="artNombre">Nombre</label>
+            <input id="artNombre" type="text"
+                   maxlength="100" required
+                   placeholder="Ejemplo: Mantequilla">
+        </div>
+
+        <div class="campo">
+            <label for="artTipo">Tipo</label>
+            <select id="artTipo" required>
+                <option value="">Seleccione el tipo</option>
+                <option value="PRODUCTO">Producto</option>
+                <option value="INGREDIENTE">Ingrediente</option>
+            </select>
+        </div>
+
+        <div class="campo">
+            <label for="artUnidad">Unidad de medida</label>
+            <select id="artUnidad" required>
+                <option value="">Seleccione una unidad</option>
+                <option value="kg">Kilogramos (kg)</option>
+                <option value="litros">Litros</option>
+                <option value="unidades">Unidades</option>
+            </select>
+        </div>
+
+        <div class="campo">
+            <label for="artSucursal">Sucursal</label>
+            <select id="artSucursal" required>
+                <option value="">Seleccione una sucursal</option>
+            </select>
+        </div>
+
+        <div class="campo">
+            <label for="artCantidad">Cantidad inicial</label>
+            <input id="artCantidad" type="number"
+                   min="0" max="99999999.99"
+                   step="0.01" required>
+        </div>
+
+        <div class="campo">
+            <label for="artMinimo">Stock mínimo</label>
+            <input id="artMinimo" type="number"
+                   min="0" max="99999999.99"
+                   step="0.01" required>
+        </div>
+
+        <div class="campo campo-boton">
+            <button id="btnArticulo" type="submit">
+                Registrar artículo
+            </button>
+        </div>
+    </form>
+
+    <div id="resultadoArticulo" class="resultado-movimiento"></div>
+</div>
+
                 <div class="tarjeta">
                     <h2>Artículos</h2>
                     <p>Productos e ingredientes del inventario.</p>

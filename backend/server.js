@@ -928,3 +928,113 @@ app.get("/api/interacciones", async (req, res) => {
 app.listen(PORT, () => {
   console.log(`Backend ejecutándose en puerto ${PORT}`);
 });
+
+/* =====================================
+   REGISTRAR ARTÍCULO CON INVENTARIO
+===================================== */
+
+app.post("/api/articulos", async (req, res) => {
+
+    const {
+        nombre,
+        tipo,
+        unidad_medida,
+        sucursal_id,
+        cantidad,
+        stock_minimo
+    } = req.body || {};
+
+    // Validar información recibida
+    if (
+        typeof nombre !== "string" ||
+        !nombre.trim() ||
+        nombre.trim().length > 100 ||
+        !["PRODUCTO", "INGREDIENTE"].includes(tipo) ||
+        typeof unidad_medida !== "string" ||
+        !unidad_medida.trim() ||
+        unidad_medida.trim().length > 30 ||
+        !Number.isInteger(sucursal_id) ||
+        sucursal_id <= 0 ||
+        typeof cantidad !== "number" ||
+        !Number.isFinite(cantidad) ||
+        cantidad < 0 ||
+        typeof stock_minimo !== "number" ||
+        !Number.isFinite(stock_minimo) ||
+        stock_minimo < 0 ||
+        Math.round(cantidad * 100) !== cantidad * 100 ||
+        Math.round(stock_minimo * 100) !== stock_minimo * 100 ||
+        cantidad > 99999999.99 ||
+        stock_minimo > 99999999.99
+    ) {
+        return res.status(400).json({
+            error: "Datos del artículo inválidos"
+        });
+    }
+
+    const cliente = await pool.connect();
+
+    try {
+        await cliente.query("BEGIN");
+
+        // Verificar que la sucursal exista y esté activa
+        const sucursal = await cliente.query(
+            `SELECT id FROM sucursales
+             WHERE id = $1 AND activo = TRUE`,
+            [sucursal_id]
+        );
+
+        if (sucursal.rows.length === 0) {
+            await cliente.query("ROLLBACK");
+
+            return res.status(404).json({
+                error: "La sucursal no existe o está inactiva"
+            });
+        }
+
+        // Crear artículo
+        const articulo = await cliente.query(
+            `INSERT INTO articulos
+             (nombre, tipo, unidad_medida)
+             VALUES ($1, $2, $3)
+             RETURNING id, nombre, tipo, unidad_medida`,
+            [nombre.trim(), tipo, unidad_medida.trim()]
+        );
+
+        const articuloNuevo = articulo.rows[0];
+
+        // Asignar inventario inicial a la sucursal
+        const inventario = await cliente.query(
+            `INSERT INTO inventario
+             (sucursal_id, articulo_id, cantidad, stock_minimo)
+             VALUES ($1, $2, $3, $4)
+             RETURNING id, sucursal_id, articulo_id,
+                       cantidad, stock_minimo`,
+            [
+                sucursal_id,
+                articuloNuevo.id,
+                cantidad,
+                stock_minimo
+            ]
+        );
+
+        await cliente.query("COMMIT");
+
+        return res.status(201).json({
+            mensaje: "Artículo registrado correctamente",
+            articulo: articuloNuevo,
+            inventario: inventario.rows[0]
+        });
+
+    } catch (error) {
+        await cliente.query("ROLLBACK");
+
+        console.error("Error al registrar artículo:", error);
+
+        return res.status(500).json({
+            error: "No fue posible registrar el artículo"
+        });
+
+    } finally {
+        cliente.release();
+    }
+});

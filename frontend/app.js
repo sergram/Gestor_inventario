@@ -117,6 +117,7 @@ async function cargarPanel() {
         mostrarSucursales(sucursales);
         mostrarArticulos(articulosDisponibles);
         cargarOpcionesMovimiento();
+        cargarSucursalesArticulo();
 
     } catch (error) {
         console.error("Error al cargar panel:", error);
@@ -549,3 +550,119 @@ async function iniciar() {
 }
 
 iniciar();
+
+
+/* =========================
+   REGISTRO DE ARTÍCULOS
+========================= */
+
+function cargarSucursalesArticulo() {
+    const select = document.getElementById("artSucursal");
+    const seleccionAnterior = select.value;
+
+    select.innerHTML =
+        '<option value="">Seleccione una sucursal</option>';
+
+    sucursalesDisponibles.forEach(sucursal => {
+        const opcion = document.createElement("option");
+        opcion.value = sucursal.id;
+        opcion.textContent = sucursal.nombre;
+        select.appendChild(opcion);
+    });
+
+    select.value = seleccionAnterior;
+}
+
+document.getElementById("formArticulo")
+    .addEventListener("submit", async event => {
+        event.preventDefault();
+
+        const nombre =
+            document.getElementById("artNombre").value.trim();
+
+        const tipo =
+            document.getElementById("artTipo").value;
+
+        const unidad_medida =
+            document.getElementById("artUnidad").value;
+
+        const sucursal_id = Number(
+            document.getElementById("artSucursal").value
+        );
+
+        const cantidad = Number(
+            document.getElementById("artCantidad").value
+        );
+
+        const stock_minimo = Number(
+            document.getElementById("artMinimo").value
+        );
+
+        const resultado =
+            document.getElementById("resultadoArticulo");
+
+        const boton =
+            document.getElementById("btnArticulo");
+
+        if (
+            !nombre ||
+            !["PRODUCTO", "INGREDIENTE"].includes(tipo) ||
+            !unidad_medida ||
+            !sucursal_id ||
+            !Number.isFinite(cantidad) ||
+            !Number.isFinite(stock_minimo) ||
+            cantidad < 0 ||
+            stock_minimo < 0
+        ) {
+            mostrarMensaje(
+                resultado,
+                "Revise los datos del artículo.",
+                true
+            );
+            return;
+        }
+
+        boton.disabled = true;
+        boton.textContent = "Registrando...";
+
+        try {
+            const respuesta = await fetch(`${API}/articulos`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    nombre,
+                    tipo,
+                    unidad_medida,
+                    sucursal_id,
+                    cantidad,
+                    stock_minimo
+                })
+            });
+
+            const datos = await respuesta.json();
+
+            if (!respuesta.ok) {
+                throw new Error(
+                    datos.error ||
+                    "No fue posible registrar el artículo"
+                );
+            }
+
+            mostrarMensaje(
+                resultado,
+                "Artículo e inventario registrados correctamente."
+            );
+
+            document.getElementById("formArticulo").reset();
+
+            await cargarPanel();
+
+        } catch (error) {
+            mostrarMensaje(resultado, error.message, true);
+        } finally {
+            boton.disabled = false;
+            boton.textContent = "Registrar artículo";
+        }
+    });
