@@ -431,3 +431,42 @@ button:disabled {
         flex-direction: column;
     }
 }
+/* FILTROS DE INVENTARIO */
+
+.filtros-inventario {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr auto;
+    gap: 14px;
+    align-items: end;
+    margin: 22px 0;
+}
+
+#limpiarFiltros {
+    padding: 12px 16px;
+    background: #eceff1;
+    color: #37474f;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+}
+
+#limpiarFiltros:hover {
+    background: #cfd8dc;
+}
+
+.contador-inventario {
+    font-size: 13px;
+    color: #718096;
+    margin: 10px 0;
+}
+
+@media (max-width: 1000px) {
+    .filtros-inventario {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 600px) {
+    .filtros-inventario {
+        grid-template-columns: 1fr;
+    }
+}

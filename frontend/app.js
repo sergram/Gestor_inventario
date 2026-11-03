@@ -111,7 +111,9 @@ async function cargarPanel() {
         document.getElementById("totalBajo").textContent =
             inventarioBajo.length;
 
-        mostrarInventario(inventario);
+        cargarFiltroSucursales();
+        aplicarFiltrosInventario();
+
         mostrarSucursales(sucursales);
         mostrarArticulos(articulosDisponibles);
         cargarOpcionesMovimiento();
@@ -154,6 +156,91 @@ function mostrarInventario(inventario) {
         tabla.appendChild(fila);
     });
 }
+
+/* =========================
+   FILTROS DE INVENTARIO
+========================= */
+
+function cargarFiltroSucursales() {
+    const select = document.getElementById("filtroSucursal");
+    const seleccionAnterior = select.value;
+
+    select.innerHTML =
+        '<option value="">Todas las sucursales</option>';
+
+    sucursalesDisponibles.forEach(sucursal => {
+        const opcion = document.createElement("option");
+        opcion.value = sucursal.id;
+        opcion.textContent = sucursal.nombre;
+        select.appendChild(opcion);
+    });
+
+    select.value = seleccionAnterior;
+}
+
+function aplicarFiltrosInventario() {
+    const busqueda = document
+        .getElementById("buscarInventario")
+        .value.trim().toLowerCase();
+
+    const sucursalSeleccionada =
+        document.getElementById("filtroSucursal").value;
+
+    const estadoSeleccionado =
+        document.getElementById("filtroEstado").value;
+
+    const sucursal = sucursalesDisponibles.find(
+        s => String(s.id) === sucursalSeleccionada
+    );
+
+    const filtrados = inventarioActual.filter(item => {
+        const coincideNombre = String(item.articulo || "")
+            .toLowerCase()
+            .includes(busqueda);
+
+        const coincideSucursal =
+            !sucursalSeleccionada ||
+            (sucursal &&
+                String(item.sucursal).toLowerCase() ===
+                String(sucursal.nombre).toLowerCase());
+
+        const bajo =
+            Number(item.cantidad) <= Number(item.stock_minimo);
+
+        const coincideEstado =
+            !estadoSeleccionado ||
+            (estadoSeleccionado === "BAJO" && bajo) ||
+            (estadoSeleccionado === "NORMAL" && !bajo);
+
+        return coincideNombre &&
+               coincideSucursal &&
+               coincideEstado;
+    });
+
+    mostrarInventario(filtrados);
+
+    document.getElementById("contadorInventario").textContent =
+        `Mostrando ${filtrados.length} de ${inventarioActual.length} registros`;
+}
+
+document.getElementById("buscarInventario")
+    .addEventListener("input", aplicarFiltrosInventario);
+
+document.getElementById("filtroSucursal")
+    .addEventListener("change", aplicarFiltrosInventario);
+
+document.getElementById("filtroEstado")
+    .addEventListener("change", aplicarFiltrosInventario);
+
+document.getElementById("limpiarFiltros")
+    .addEventListener("click", () => {
+        document.getElementById("buscarInventario").value = "";
+        document.getElementById("filtroSucursal").value = "";
+        document.getElementById("filtroEstado").value = "";
+
+        aplicarFiltrosInventario();
+    });
+
 
 /* =========================
    SUCURSALES Y ARTÍCULOS

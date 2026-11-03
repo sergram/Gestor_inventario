@@ -72,6 +72,42 @@
                 <div class="tarjeta">
                     <h2>Inventario actual</h2>
                     <p>Existencias registradas por sucursal.</p>
+                    <div class="filtros-inventario">
+
+    <div class="campo">
+        <label for="buscarInventario">Buscar artículo</label>
+        <input
+            type="search"
+            id="buscarInventario"
+            placeholder="Ejemplo: Harina"
+        >
+    </div>
+
+    <div class="campo">
+        <label for="filtroSucursal">Sucursal</label>
+        <select id="filtroSucursal">
+            <option value="">Todas las sucursales</option>
+        </select>
+    </div>
+
+    <div class="campo">
+        <label for="filtroEstado">Estado</label>
+        <select id="filtroEstado">
+            <option value="">Todos</option>
+            <option value="BAJO">Inventario bajo</option>
+            <option value="NORMAL">Normal</option>
+        </select>
+    </div>
+
+    <div class="campo campo-boton">
+        <button type="button" id="limpiarFiltros">
+            Limpiar filtros
+        </button>
+    </div>
+
+</div>
+
+<p id="contadorInventario" class="contador-inventario"></p>
 
                     <div class="tabla-contenedor">
                         <table>
