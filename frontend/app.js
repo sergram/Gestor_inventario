@@ -118,6 +118,8 @@ async function cargarPanel() {
         mostrarArticulos(articulosDisponibles);
         cargarOpcionesMovimiento();
         cargarSucursalesArticulo();
+        cargarOpcionesAsignacion();
+        cargarOpcionesMinimo();
 
     } catch (error) {
         console.error("Error al cargar panel:", error);
@@ -664,5 +666,315 @@ document.getElementById("formArticulo")
         } finally {
             boton.disabled = false;
             boton.textContent = "Registrar artículo";
+        }
+    });
+
+
+/* =====================================
+   ASIGNAR INVENTARIO A SUCURSAL
+===================================== */
+
+
+function cargarOpcionesAsignacion() {
+    const selectArticulo = document.getElementById("asigArticulo");
+    const selectSucursal = document.getElementById("asigSucursal");
+
+    if (!selectArticulo || !selectSucursal) {
+        console.error("No se encontraron los selectores de asignación");
+        return;
+    }
+
+    selectArticulo.innerHTML =
+        '<option value="">Seleccione un artículo</option>';
+
+    selectSucursal.innerHTML =
+        '<option value="">Seleccione una sucursal</option>';
+
+    // Artículos disponibles
+    articulosDisponibles.forEach(articulo => {
+        const opcion = document.createElement("option");
+        opcion.value = articulo.id;
+        opcion.textContent = articulo.nombre;
+
+        selectArticulo.appendChild(opcion);
+    });
+
+    // Sucursales disponibles
+    sucursalesDisponibles.forEach(sucursal => {
+        const opcion = document.createElement("option");
+        opcion.value = sucursal.id;
+        opcion.textContent = sucursal.nombre;
+
+        selectSucursal.appendChild(opcion);
+    });
+
+    console.log("Artículos cargados:", articulosDisponibles.length);
+    console.log("Sucursales cargadas:", sucursalesDisponibles.length);
+}
+
+
+document.getElementById("formAsignacion")
+    .addEventListener("submit", async event => {
+        event.preventDefault();
+
+        const articulo_id = Number(
+            document.getElementById("asigArticulo").value
+        );
+
+        const sucursal_id = Number(
+            document.getElementById("asigSucursal").value
+        );
+
+        const cantidad = Number(
+            document.getElementById("asigCantidad").value
+        );
+
+        const stock_minimo = Number(
+            document.getElementById("asigMinimo").value
+        );
+
+        const resultado =
+            document.getElementById("resultadoAsignacion");
+
+        const boton =
+            document.getElementById("btnAsignacion");
+
+        if (
+            !Number.isInteger(articulo_id) || articulo_id <= 0 ||
+            !Number.isInteger(sucursal_id) || sucursal_id <= 0 ||
+            !Number.isFinite(cantidad) || cantidad < 0 ||
+            !Number.isFinite(stock_minimo) || stock_minimo < 0
+        ) {
+            mostrarMensaje(
+                resultado,
+                "Revise los datos de asignación.",
+                true
+            );
+            return;
+        }
+
+        boton.disabled = true;
+        boton.textContent = "Asignando...";
+
+        try {
+            const respuesta = await fetch(`${API}/inventario/asignar`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    articulo_id,
+                    sucursal_id,
+                    cantidad,
+                    stock_minimo
+                })
+            });
+
+            const datos = await respuesta.json();
+
+            if (!respuesta.ok) {
+                throw new Error(
+                    datos.error || "No fue posible asignar el inventario"
+                );
+            }
+
+            mostrarMensaje(
+                resultado,
+                "Artículo asignado correctamente a la sucursal."
+            );
+
+            document.getElementById("formAsignacion").reset();
+
+            await cargarPanel();
+
+        } catch (error) {
+            mostrarMensaje(resultado, error.message, true);
+        } finally {
+            boton.disabled = false;
+            boton.textContent = "Asignar inventario";
+        }
+    });
+
+/* =====================================
+   ACTUALIZAR STOCK MÍNIMO
+===================================== */
+
+function cargarOpcionesMinimo() {
+    const selectSucursal = document.getElementById("minSucursal");
+    const seleccionAnterior = selectSucursal.value;
+
+    selectSucursal.innerHTML =
+        '<option value="">Seleccione una sucursal</option>';
+
+    sucursalesDisponibles.forEach(sucursal => {
+        const opcion = document.createElement("option");
+
+        opcion.value = sucursal.id;
+        opcion.textContent = sucursal.nombre;
+
+        selectSucursal.appendChild(opcion);
+    });
+
+    selectSucursal.value = seleccionAnterior;
+    cargarArticulosMinimo();
+}
+
+
+function cargarArticulosMinimo() {
+    const sucursalId =
+        document.getElementById("minSucursal").value;
+
+    const selectArticulo =
+        document.getElementById("minArticulo");
+
+    const articuloAnterior = selectArticulo.value;
+
+    selectArticulo.innerHTML =
+        '<option value="">Seleccione un artículo</option>';
+
+    selectArticulo.disabled = !sucursalId;
+
+    if (!sucursalId) {
+        return;
+    }
+
+    const sucursal = sucursalesDisponibles.find(
+        s => String(s.id) === sucursalId
+    );
+
+    if (!sucursal) {
+        return;
+    }
+
+    // Mostrar solo artículos asignados a esta sucursal
+    inventarioActual
+        .filter(item => item.sucursal === sucursal.nombre)
+        .forEach(item => {
+            const opcion = document.createElement("option");
+
+            opcion.value = item.articulo_id;
+            opcion.textContent = item.articulo;
+
+            selectArticulo.appendChild(opcion);
+        });
+
+    if ([...selectArticulo.options].some(
+        opcion => opcion.value === articuloAnterior
+    )) {
+        selectArticulo.value = articuloAnterior;
+    }
+
+    mostrarMinimoActual();
+}
+
+
+function mostrarMinimoActual() {
+    const sucursalId =
+        document.getElementById("minSucursal").value;
+
+    const articuloId =
+        document.getElementById("minArticulo").value;
+
+    const sucursal = sucursalesDisponibles.find(
+        s => String(s.id) === sucursalId
+    );
+
+    const registro = inventarioActual.find(item =>
+        sucursal &&
+        item.sucursal === sucursal.nombre &&
+        String(item.articulo_id) === articuloId
+    );
+
+    document.getElementById("minValor").value =
+        registro ? Number(registro.stock_minimo) : "";
+}
+
+
+document.getElementById("minSucursal")
+    .addEventListener("change", cargarArticulosMinimo);
+
+document.getElementById("minArticulo")
+    .addEventListener("change", mostrarMinimoActual);
+
+
+document.getElementById("formMinimo")
+    .addEventListener("submit", async event => {
+        event.preventDefault();
+
+        const sucursal_id = Number(
+            document.getElementById("minSucursal").value
+        );
+
+        const articulo_id = Number(
+            document.getElementById("minArticulo").value
+        );
+
+        const stock_minimo = Number(
+            document.getElementById("minValor").value
+        );
+
+        const resultado =
+            document.getElementById("resultadoMinimo");
+
+        const boton =
+            document.getElementById("btnMinimo");
+
+        if (
+            !Number.isInteger(sucursal_id) ||
+            sucursal_id <= 0 ||
+            !Number.isInteger(articulo_id) ||
+            articulo_id <= 0 ||
+            !Number.isFinite(stock_minimo) ||
+            stock_minimo < 0 ||
+            stock_minimo > 99999999.99
+        ) {
+            mostrarMensaje(
+                resultado,
+                "Revise los datos ingresados.",
+                true
+            );
+            return;
+        }
+
+        boton.disabled = true;
+        boton.textContent = "Actualizando...";
+
+        try {
+            const respuesta = await fetch(
+                `${API}/inventario/minimo`,
+                {
+                    method: "PATCH",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        sucursal_id,
+                        articulo_id,
+                        stock_minimo
+                    })
+                }
+            );
+
+            const datos = await respuesta.json();
+
+            if (!respuesta.ok) {
+                throw new Error(
+                    datos.error ||
+                    "No fue posible actualizar el mínimo"
+                );
+            }
+
+            await cargarPanel();
+
+            mostrarMensaje(
+                resultado,
+                "Stock mínimo actualizado correctamente."
+            );
+
+        } catch (error) {
+            mostrarMensaje(resultado, error.message, true);
+        } finally {
+            boton.disabled = false;
+            boton.textContent = "Actualizar mínimo";
         }
     });

@@ -925,6 +925,140 @@ app.get("/api/interacciones", async (req, res) => {
   }
 });
 
+/* =====================================
+   ASIGNAR ARTÍCULO A UNA SUCURSAL
+===================================== */
+
+app.post("/api/inventario/asignar", async (req, res) => {
+    const {
+        sucursal_id,
+        articulo_id,
+        cantidad,
+        stock_minimo
+    } = req.body || {};
+
+    if (
+        !Number.isInteger(sucursal_id) || sucursal_id <= 0 ||
+        !Number.isInteger(articulo_id) || articulo_id <= 0 ||
+        typeof cantidad !== "number" ||
+        !Number.isFinite(cantidad) || cantidad < 0 ||
+        typeof stock_minimo !== "number" ||
+        !Number.isFinite(stock_minimo) || stock_minimo < 0 ||
+        !Number.isInteger(Math.round(cantidad * 100)) ||
+        Math.abs(cantidad * 100 - Math.round(cantidad * 100)) > 0.000001 ||
+        Math.abs(stock_minimo * 100 - Math.round(stock_minimo * 100)) > 0.000001 ||
+        cantidad > 99999999.99 ||
+        stock_minimo > 99999999.99
+    ) {
+        return res.status(400).json({
+            error: "Datos de inventario inválidos"
+        });
+    }
+
+    try {
+        const resultado = await pool.query(
+            `INSERT INTO inventario
+                (sucursal_id, articulo_id, cantidad, stock_minimo)
+             SELECT $1, $2, $3, $4
+             WHERE EXISTS (
+                 SELECT 1 FROM sucursales
+                 WHERE id = $1 AND activo = TRUE
+             )
+             AND EXISTS (
+                 SELECT 1 FROM articulos
+                 WHERE id = $2 AND activo = TRUE
+             )
+             ON CONFLICT (sucursal_id, articulo_id)
+             DO NOTHING
+             RETURNING id, sucursal_id, articulo_id,
+                       cantidad, stock_minimo`,
+            [sucursal_id, articulo_id, cantidad, stock_minimo]
+        );
+
+        if (resultado.rows.length === 0) {
+            return res.status(409).json({
+                error: "El artículo ya está asignado a esta sucursal o los registros no son válidos"
+            });
+        }
+
+        return res.status(201).json({
+            mensaje: "Inventario asignado correctamente",
+            inventario: resultado.rows[0]
+        });
+
+    } catch (error) {
+        console.error("Error al asignar inventario:", error);
+
+        return res.status(500).json({
+            error: "No fue posible asignar el inventario"
+        });
+    }
+});
+
+/* =====================================
+   ACTUALIZAR STOCK MÍNIMO
+===================================== */
+
+app.patch("/api/inventario/minimo", async (req, res) => {
+    const {
+        sucursal_id,
+        articulo_id,
+        stock_minimo
+    } = req.body || {};
+
+    if (
+        !Number.isInteger(sucursal_id) ||
+        sucursal_id <= 0 ||
+        !Number.isInteger(articulo_id) ||
+        articulo_id <= 0 ||
+        typeof stock_minimo !== "number" ||
+        !Number.isFinite(stock_minimo) ||
+        stock_minimo < 0 ||
+        stock_minimo > 99999999.99 ||
+        Math.abs(
+            stock_minimo * 100 -
+            Math.round(stock_minimo * 100)
+        ) > 0.000001
+    ) {
+        return res.status(400).json({
+            error: "Datos de stock mínimo inválidos"
+        });
+    }
+
+    try {
+        const resultado = await pool.query(
+            `UPDATE inventario
+             SET stock_minimo = $1,
+                 fecha_actualizacion = CURRENT_TIMESTAMP
+             WHERE sucursal_id = $2
+               AND articulo_id = $3
+             RETURNING id, sucursal_id, articulo_id,
+                       cantidad, stock_minimo`,
+            [stock_minimo, sucursal_id, articulo_id]
+        );
+
+        if (resultado.rows.length === 0) {
+            return res.status(404).json({
+                error: "No existe inventario para ese artículo y sucursal"
+            });
+        }
+
+        return res.json({
+            mensaje: "Stock mínimo actualizado correctamente",
+            inventario: resultado.rows[0]
+        });
+
+    } catch (error) {
+        console.error("Error al actualizar stock mínimo:", error);
+
+        return res.status(500).json({
+            error: "No fue posible actualizar el stock mínimo"
+        });
+    }
+});
+
+
+
 app.listen(PORT, () => {
   console.log(`Backend ejecutándose en puerto ${PORT}`);
 });
