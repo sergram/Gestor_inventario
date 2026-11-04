@@ -116,7 +116,7 @@ const controller = new AbortController();
 
 const timeout = setTimeout(() => {
   controller.abort();
-}, 30000);
+}, 60000);
 
   const respuesta = await fetch(`${OLLAMA_URL}/api/generate`, {
     method: "POST",
@@ -635,11 +635,20 @@ else if (tipoConsulta === "SUGERIR_REPOSICION") {
 } catch (error) {
 
   console.error("Error en asistente:", error);
+const codigosConexion = [
+    "ECONNREFUSED",
+    "ENOTFOUND",
+    "EAI_AGAIN",
+    "ECONNRESET",
+    "ETIMEDOUT",
+    "UND_ERR_CONNECT_TIMEOUT"
+];
 
-  const esErrorOllama =
+const esErrorOllama =
     error.name === "AbortError" ||
-    error.message.includes("Ollama") ||
-    error.cause?.code === "ECONNREFUSED";
+    error.message?.includes("Ollama") ||
+    error.message === "fetch failed" ||
+    codigosConexion.includes(error.cause?.code);
 
   if (esErrorOllama) {
     try {
