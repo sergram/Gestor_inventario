@@ -1,226 +1,411 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Panadería El Viajero - Inventario</title>
-
+    <title>El Viajero | Administración</title>
     <link rel="stylesheet" href="styles.css">
 </head>
-
 <body>
 
-<header class="encabezado">
-    <div>
-        <h1>Panadería El Viajero</h1>
-        <p>Panel administrativo de inventario</p>
-    </div>
+<div class="app-layout">
 
-    <div class="estado-sistema">
-        <span class="punto-activo"></span>
-        Sistema activo
-    </div>
-</header>
-
-<main class="contenedor">
-
-    <!-- RESUMEN -->
-    <section class="resumen">
-
-        <div class="tarjeta-resumen">
-            <span>Sucursales</span>
-            <strong id="totalSucursales">-</strong>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2>El Viajero</h2>
+            <p>Administración</p>
         </div>
 
-        <div class="tarjeta-resumen">
-            <span>Artículos registrados</span>
-            <strong id="totalArticulos">-</strong>
-        </div>
+        <nav class="sidebar-nav" aria-label="Navegación principal">
+            <button class="nav-link activo" data-seccion="dashboard">Dashboard</button>
+            <button class="nav-link" data-seccion="inventario">Inventario</button>
+            <button class="nav-link" data-seccion="movimientos">Movimientos</button>
+            <button class="nav-link" data-seccion="asistente">Asistente IA</button>
+            <button class="nav-link" data-seccion="historial">Historial IA</button>
+            <button class="nav-link" data-seccion="sucursales">Sucursales</button>
+            <button class="nav-link" data-seccion="articulos">Artículos</button>
+        </nav>
+    </aside>
 
-        <div class="tarjeta-resumen">
-            <span>Inventario bajo</span>
-            <strong id="totalBajo">-</strong>
-        </div>
+    <div class="main-layout">
 
-    </section>
-
-
-    <!-- ASISTENTE IA -->
-    <section class="tarjeta">
-
-        <div class="titulo-seccion">
+        <header class="topbar">
             <div>
-                <h2>Asistente inteligente</h2>
-                <p>
-                    Consulta existencias, inventario por sucursal
-                    y sugerencias de reposición.
-                </p>
+                <h1 id="tituloPagina">Dashboard</h1>
+                <p>Panadería El Viajero</p>
             </div>
+            <span class="estado-sistema">Panel administrativo</span>
+        </header>
 
-            <span class="etiqueta-ia">Gemma 3</span>
+        <main class="contenido">
+
+            <!-- DASHBOARD -->
+            <section id="dashboard" class="pagina activa">
+                <div class="resumen">
+                    <div class="tarjeta-resumen">
+                        <span>Sucursales</span>
+                        <strong id="totalSucursales">-</strong>
+                    </div>
+                    <div class="tarjeta-resumen">
+                        <span>Artículos en inventario</span>
+                        <strong id="totalArticulos">-</strong>
+                    </div>
+                    <div class="tarjeta-resumen">
+                        <span>Inventario bajo</span>
+                        <strong id="totalBajo">-</strong>
+                    </div>
+                </div>
+
+                <div class="tarjeta">
+                    <h2>Resumen del sistema</h2>
+                    <p>
+                        Consulta existencias, registra movimientos y
+                        utiliza el asistente inteligente para apoyar
+                        las decisiones de inventario.
+                    </p>
+                </div>
+            </section>
+
+            <!-- INVENTARIO -->
+            <section id="inventario" class="pagina">
+                <div class="tarjeta">
+                    <h2>Inventario actual</h2>
+                    <p>Existencias registradas por sucursal.</p>
+                    <div class="filtros-inventario">
+
+    <div class="campo">
+        <label for="buscarInventario">Buscar artículo</label>
+        <input
+            type="search"
+            id="buscarInventario"
+            placeholder="Ejemplo: Harina"
+        >
+    </div>
+
+    <div class="campo">
+        <label for="filtroSucursal">Sucursal</label>
+        <select id="filtroSucursal">
+            <option value="">Todas las sucursales</option>
+        </select>
+    </div>
+
+    <div class="campo">
+        <label for="filtroEstado">Estado</label>
+        <select id="filtroEstado">
+            <option value="">Todos</option>
+            <option value="BAJO">Inventario bajo</option>
+            <option value="NORMAL">Normal</option>
+        </select>
+    </div>
+
+    <div class="campo campo-boton">
+        <button type="button" id="limpiarFiltros">
+            Limpiar filtros
+        </button>
+    </div>
+
+</div>
+
+<p id="contadorInventario" class="contador-inventario"></p>
+
+                    <div class="tabla-contenedor">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Sucursal</th>
+                                    <th>Artículo</th>
+                                    <th>Tipo</th>
+                                    <th>Cantidad</th>
+                                    <th>Mínimo</th>
+                                    <th>Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tablaInventario"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+<div class="tarjeta">
+    <h2>Actualizar stock mínimo</h2>
+    <p>
+        Modifica el nivel mínimo de un artículo en una
+        sucursal sin alterar sus existencias.
+    </p>
+
+    <form id="formMinimo" class="form-movimiento">
+
+        <div class="campo">
+            <label for="minSucursal">Sucursal</label>
+            <select id="minSucursal" required>
+                <option value="">Seleccione una sucursal</option>
+            </select>
         </div>
 
-        <div id="respuestaAsistente" class="respuesta-asistente">
-            Escribe una consulta para comenzar.
+        <div class="campo">
+            <label for="minArticulo">Artículo</label>
+            <select id="minArticulo" required disabled>
+                <option value="">Seleccione primero una sucursal</option>
+            </select>
         </div>
 
-        <form id="formAsistente" class="form-asistente">
-
+        <div class="campo">
+            <label for="minValor">Nuevo stock mínimo</label>
             <input
-                type="text"
-                id="mensaje"
-                maxlength="500"
-                autocomplete="off"
-                placeholder="Ejemplo: ¿Qué necesitamos comprar?"
+                type="number"
+                id="minValor"
+                min="0"
+                max="99999999.99"
+                step="0.01"
                 required
             >
+        </div>
 
-            <button type="submit" id="btnEnviar">
-                Consultar
+        <div class="campo campo-boton">
+            <button type="submit" id="btnMinimo">
+                Actualizar mínimo
             </button>
-
-        </form>
-
-    </section>
-
-
-    <!-- REGISTRAR MOVIMIENTO -->
-    <section class="tarjeta">
-
-        <div class="titulo-seccion">
-            <div>
-                <h2>Registrar movimiento de inventario</h2>
-                <p>
-                    Registra entradas y salidas de productos
-                    o ingredientes.
-                </p>
-            </div>
         </div>
 
-        <form id="formMovimiento" class="form-movimiento">
+    </form>
 
-            <div class="campo">
-                <label for="movSucursal">Sucursal</label>
+    <div id="resultadoMinimo" class="resultado-movimiento"></div>
+</div>
 
-                <select id="movSucursal" required>
-                    <option value="">Seleccione una sucursal</option>
-                </select>
-            </div>
-
-            <div class="campo">
-                <label for="movArticulo">Artículo</label>
-
-                <select id="movArticulo" required>
-                    <option value="">Seleccione un artículo</option>
-                </select>
-            </div>
-
-            <div class="campo">
-                <label for="movTipo">Tipo de movimiento</label>
-
-                <select id="movTipo" required>
-                    <option value="">Seleccione el tipo</option>
-                    <option value="ENTRADA">Entrada</option>
-                    <option value="SALIDA">Salida</option>
-                </select>
-            </div>
-
-            <div class="campo">
-                <label for="movCantidad">Cantidad</label>
-
-                <input
-                    type="number"
-                    id="movCantidad"
-                    min="0.01"
-                    step="0.01"
-                    placeholder="Ejemplo: 10"
-                    required
-                >
-            </div>
-
-            <div class="campo campo-descripcion">
-                <label for="movDescripcion">Descripción</label>
-
-                <input
-                    type="text"
-                    id="movDescripcion"
-                    maxlength="200"
-                    placeholder="Ejemplo: Compra de producto"
-                >
-            </div>
-
-            <div class="campo campo-boton">
-                <button type="submit" id="btnMovimiento">
-                    Registrar movimiento
-                </button>
-            </div>
-
-        </form>
-
-        <div id="resultadoMovimiento" class="resultado-movimiento"></div>
-
-    </section>
+            </section>
 
 
-    <!-- INVENTARIO -->
-    <section class="tarjeta">
+            <!-- MOVIMIENTOS -->
+            <section id="movimientos" class="pagina">
+                <div class="tarjeta">
+                    <h2>Registrar movimiento</h2>
+                    <p>Entradas y salidas de inventario.</p>
 
-        <div class="titulo-seccion">
-            <div>
-                <h2>Inventario actual</h2>
-                <p>
-                    Existencias registradas por sucursal.
-                </p>
-            </div>
+                    <form id="formMovimiento" class="form-movimiento">
+                        <div class="campo">
+                            <label for="movSucursal">Sucursal</label>
+                            <select id="movSucursal" required>
+                                <option value="">Seleccione una sucursal</option>
+                            </select>
+                        </div>
+
+                        <div class="campo">
+                            <label for="movArticulo">Artículo</label>
+                            <select id="movArticulo" required>
+                                <option value="">Seleccione un artículo</option>
+                            </select>
+                        </div>
+
+                        <div class="campo">
+                            <label for="movTipo">Tipo</label>
+                            <select id="movTipo" required>
+                                <option value="">Seleccione el tipo</option>
+                                <option value="ENTRADA">Entrada</option>
+                                <option value="SALIDA">Salida</option>
+                            </select>
+                        </div>
+
+                        <div class="campo">
+                            <label for="movCantidad">Cantidad</label>
+                            <input id="movCantidad" type="number"
+                                   min="0.01" step="0.01" required>
+                        </div>
+
+                        <div class="campo campo-descripcion">
+                            <label for="movDescripcion">Descripción</label>
+                            <input id="movDescripcion" type="text"
+                                   maxlength="200">
+                        </div>
+
+                        <div class="campo campo-boton">
+                            <button id="btnMovimiento" type="submit">
+                                Registrar movimiento
+                            </button>
+                        </div>
+                    </form>
+
+                    <div id="resultadoMovimiento"
+                         class="resultado-movimiento"></div>
+                </div>
+
+                <div class="tarjeta">
+                    <h2>Historial de movimientos</h2>
+                    <div id="historialMovimientos">
+                        Pendiente de cargar...
+                    </div>
+                </div>
+            </section>
+
+            <!-- ASISTENTE -->
+            <section id="asistente" class="pagina">
+                <div class="tarjeta">
+                    <div class="titulo-seccion">
+                        <div>
+                            <h2>Asistente inteligente</h2>
+                            <p>Consultas en lenguaje natural.</p>
+                        </div>
+                        <span class="etiqueta-ia">Gemma 3</span>
+                    </div>
+
+                    <div id="respuestaAsistente"
+                         class="respuesta-asistente">
+                        Escribe una consulta para comenzar.
+                    </div>
+
+                    <form id="formAsistente" class="form-asistente">
+                        <input id="mensaje" type="text"
+                               maxlength="500"
+                               placeholder="¿Qué necesitamos comprar?"
+                               required>
+                        <button id="btnEnviar" type="submit">
+                            Consultar
+                        </button>
+                    </form>
+                </div>
+            </section>
+
+            <!-- HISTORIAL IA -->
+            <section id="historial" class="pagina">
+                <div class="tarjeta">
+                    <h2>Historial del asistente</h2>
+                    <div id="historialContenido" class="historial">
+                        Cargando historial...
+                    </div>
+                </div>
+            </section>
+
+            <!-- SUCURSALES -->
+            <section id="sucursales" class="pagina">
+                <div class="tarjeta">
+                    <h2>Sucursales</h2>
+                    <p>Listado de sucursales registradas.</p>
+                    <div id="listaSucursales"></div>
+                </div>
+            </section>
+
+            <!-- ARTÍCULOS -->
+            <section id="articulos" class="pagina">
+                
+
+<div class="tarjeta">
+    <h2>Registrar nuevo artículo</h2>
+    <p>Agrega un producto o ingrediente con sus existencias iniciales.</p>
+
+    <form id="formArticulo" class="form-movimiento">
+
+        <div class="campo">
+            <label for="artNombre">Nombre</label>
+            <input id="artNombre" type="text"
+                   maxlength="100" required
+                   placeholder="Ejemplo: Mantequilla">
         </div>
 
-        <div class="tabla-contenedor">
-
-            <table>
-
-                <thead>
-                    <tr>
-                        <th>Sucursal</th>
-                        <th>Artículo</th>
-                        <th>Tipo</th>
-                        <th>Cantidad</th>
-                        <th>Mínimo</th>
-                        <th>Estado</th>
-                    </tr>
-                </thead>
-
-                <tbody id="tablaInventario">
-                </tbody>
-
-            </table>
-
+        <div class="campo">
+            <label for="artTipo">Tipo</label>
+            <select id="artTipo" required>
+                <option value="">Seleccione el tipo</option>
+                <option value="PRODUCTO">Producto</option>
+                <option value="INGREDIENTE">Ingrediente</option>
+            </select>
         </div>
 
-    </section>
-
-
-    <!-- HISTORIAL IA -->
-    <section class="tarjeta">
-
-        <div class="titulo-seccion">
-            <div>
-                <h2>Historial del asistente</h2>
-                <p>
-                    Últimas consultas realizadas al sistema.
-                </p>
-            </div>
+        <div class="campo">
+            <label for="artUnidad">Unidad de medida</label>
+            <select id="artUnidad" required>
+                <option value="">Seleccione una unidad</option>
+                <option value="kg">Kilogramos (kg)</option>
+                <option value="litros">Litros</option>
+                <option value="unidades">Unidades</option>
+            </select>
         </div>
 
-        <div id="historial" class="historial">
-            Cargando historial...
+        <div class="campo">
+            <label for="artSucursal">Sucursal</label>
+            <select id="artSucursal" required>
+                <option value="">Seleccione una sucursal</option>
+            </select>
         </div>
 
-    </section>
+        <div class="campo">
+            <label for="artCantidad">Cantidad inicial</label>
+            <input id="artCantidad" type="number"
+                   min="0" max="99999999.99"
+                   step="0.01" required>
+        </div>
 
-</main>
+        <div class="campo">
+            <label for="artMinimo">Stock mínimo</label>
+            <input id="artMinimo" type="number"
+                   min="0" max="99999999.99"
+                   step="0.01" required>
+        </div>
+
+        <div class="campo campo-boton">
+            <button id="btnArticulo" type="submit">
+                Registrar artículo
+            </button>
+        </div>
+    </form>
+    
+
+<div class="tarjeta">
+    <h2>Asignar artículo a sucursal</h2>
+    <p>Registra existencias de un artículo existente en otra sucursal.</p>
+
+    <form id="formAsignacion" class="form-movimiento">
+        <div class="campo">
+            <label for="asigArticulo">Artículo</label>
+            <select id="asigArticulo" required>
+                <option value="">Seleccione un artículo</option>
+            </select>
+        </div>
+
+        <div class="campo">
+            <label for="asigSucursal">Sucursal</label>
+            <select id="asigSucursal" required>
+                <option value="">Seleccione una sucursal</option>
+            </select>
+        </div>
+
+        <div class="campo">
+            <label for="asigCantidad">Cantidad inicial</label>
+            <input id="asigCantidad" type="number"
+                   min="0" max="99999999.99"
+                   step="0.01" required>
+        </div>
+
+        <div class="campo">
+            <label for="asigMinimo">Stock mínimo</label>
+            <input id="asigMinimo" type="number"
+                   min="0" max="99999999.99"
+                   step="0.01" required>
+        </div>
+
+        <div class="campo campo-boton">
+            <button id="btnAsignacion" type="submit">
+                Asignar inventario
+            </button>
+        </div>
+    </form>
+
+    <div id="resultadoAsignacion" class="resultado-movimiento"></div>
+</div>
+
+
+    <div id="resultadoArticulo" class="resultado-movimiento"></div>
+</div>
+
+                <div class="tarjeta">
+                    <h2>Artículos</h2>
+                    <p>Productos e ingredientes del inventario.</p>
+                    <div id="listaArticulos"></div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+</div>
 
 <script src="app.js"></script>
-
 </body>
 </html>
